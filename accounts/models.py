@@ -5,7 +5,6 @@ from django.contrib.auth.models import AbstractUser
 # Create your models here.
 
 class User(AbstractUser):
-    username = None
     email = models.EmailField(unique=True)
 
     is_vendor = models.BooleanField(default=False)
