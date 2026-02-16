@@ -1,6 +1,3 @@
-from django.shortcuts import render
-from rest_framework import generics
-from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from django.core.cache import cache
 from django.core.mail import send_mail
@@ -10,6 +7,8 @@ from rest_framework.throttling import UserRateThrottle
 from .serializers import *
 import secrets
 import string
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.throttling import AnonRateThrottle
 
 # Create your views here.
 
@@ -83,4 +82,29 @@ class VerifyCodeView(APIView):
             cache.delete(attempt_key)
 
             return Response({"message": "Register is successful."}, status=201)
+        return Response(serializer.errors, status=400)
+
+
+class LoginThrottle(AnonRateThrottle):
+    rate = '10/hour'
+class LoginView(APIView):
+
+    throttle_classes = [LoginThrottle]
+
+    def post(self, request):
+        serializer = LoginSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email'].strip().lower()
+            password = serializer.validated_data['password']
+
+            user = User.objects.filter(email__iexact=email).first()
+            if not user or not user.check_password(password):
+                return Response({'error': 'Incorrect email or password.'}, status=400)
+
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                'access': str(refresh.access_token),
+                'refresh': str(refresh),
+            }, status=200)
+
         return Response(serializer.errors, status=400)
