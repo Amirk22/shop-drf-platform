@@ -14,6 +14,8 @@ from rest_framework.throttling import AnonRateThrottle
 
 def generate_6digit_code():
     return ''.join(secrets.choice(string.digits) for _ in range(6))
+
+
 class RegisterThrottle(UserRateThrottle):
     rate = '5/hour'
 
@@ -108,3 +110,26 @@ class LoginView(APIView):
             }, status=200)
 
         return Response(serializer.errors, status=400)
+
+
+class LogoutView(APIView):
+
+    def post(self, request):
+        refresh_token = request.data.get("refresh")
+
+        if not refresh_token:
+            return Response(
+                {"error": "Refresh token is required."},
+                status=400
+            )
+
+        try:
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response(status=200)
+        except Exception:
+            return Response(
+                {"error": "Invalid or expired token."},
+                status=400
+            )
+
