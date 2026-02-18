@@ -10,7 +10,7 @@ import secrets
 import string
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.throttling import AnonRateThrottle
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 
 # Create your views here.
 
@@ -117,6 +117,8 @@ class LoginView(APIView):
 
 
 class LogoutView(APIView):
+
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         refresh_token = request.data.get("refresh")
@@ -229,6 +231,8 @@ class ChangePasswordView(APIView):
 
 class VendorRequestView(APIView):
 
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
         if hasattr(request.user, 'vendor_profile'):
             return Response({"error": "Already requested."}, status=400)
@@ -254,6 +258,7 @@ class UnactiveVendorView(generics.ListAPIView):
     queryset = VendorProfile.objects.filter(is_approved=False)
     serializer_class = ActiveVendorSerializer
     permission_classes = [IsAdminUser]
+
 class AdminVendorApproveView(generics.UpdateAPIView):
     serializer_class = VendorApproveSerializer
     queryset = VendorProfile.objects.all()
