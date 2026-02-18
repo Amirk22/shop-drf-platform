@@ -10,8 +10,8 @@ class User(AbstractUser):
     is_vendor = models.BooleanField(default=False)
     is_customer = models.BooleanField(default=True)
 
-    USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = []
+    USERNAME_FIELD = "username"
+    REQUIRED_FIELDS = ["email"]
 
     def __str__(self):
         return self.email
