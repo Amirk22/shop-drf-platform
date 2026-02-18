@@ -18,7 +18,6 @@ def generate_6digit_code():
 
 class RegisterThrottle(UserRateThrottle):
     rate = '5/hour'
-
 class RegisterView(APIView):
 
     throttle_classes = [RegisterThrottle]
@@ -132,4 +131,94 @@ class LogoutView(APIView):
                 {"error": "Invalid or expired token."},
                 status=400
             )
+
+
+class ForgetPasswordThrottle(AnonRateThrottle):
+    rate = '5/hour'
+class ForgetPasswordView(APIView):
+
+    throttle_classes = [ForgetPasswordThrottle]
+
+    def post(self, request):
+        serializer = ForgetPasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email'].lower()
+
+            if not User.objects.filter(email__iexact=email).exists():
+                return Response(
+                    {"message": "If the email exists, a verification code has been sent."},
+                    status=200
+                )
+
+            code = str(generate_6digit_code())
+            cache.set(f"forget_password_code_{email}", code, timeout=300)
+
+            send_mail(
+                "Verify your email",
+                f'your verify code is {code}',
+                'marketplace@gmail.com',
+                [email],
+                fail_silently=False,
+            )
+            return Response({"message": "Send Verify Code"}, status=200)
+        return Response(serializer.errors, status=400)
+
+class VerifyForgetPasswordView(APIView):
+
+    throttle_classes = [ForgetPasswordThrottle]
+
+    def post(self, request):
+        serializer = VerifyForgetPasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email'].lower()
+            code = serializer.validated_data['code'].strip()
+
+            saved_code = cache.get(f"forget_password_code_{email}")
+            attempt_key = f"verify_attempt_{email}"
+            attempts = cache.get(attempt_key, 0)
+
+            if attempts >= 5:
+                return Response({"error": "Too many attempts"}, status=429)
+
+            if saved_code and saved_code == code:
+                reset_token = secrets.token_urlsafe(32)
+                cache.set(f"reset_token_{email}", reset_token, timeout=300)
+                cache.delete(attempt_key)
+                cache.delete(f"forget_password_code_{email}")
+                return Response({
+                    "message": "Code verified.",
+                    "reset_token": reset_token
+                })
+
+            cache.set(attempt_key, attempts + 1, timeout=300)
+            return Response({"error": "Incorrect code."}, status=400)
+
+class ChangePasswordView(APIView):
+
+    def post(self, request):
+        serializer = ChangePasswordSerializer(data=request.data)
+
+        if serializer.is_valid():
+            email = serializer.validated_data['email'].lower()
+            new_password = serializer.validated_data['password']
+            reset_token = serializer.validated_data['reset_token']
+
+            saved_token = cache.get(f"reset_token_{email}")
+
+            if not saved_token or saved_token != reset_token:
+                return Response({"error": "Invalid or expired token."}, status=403)
+
+            user = User.objects.filter(email__iexact=email).first()
+            if not user:
+                return Response({"error": "Invalid request."}, status=400)
+
+            user.set_password(new_password)
+            user.save()
+
+            cache.delete(f"reset_token_{email}")
+
+            return Response({"message": "Password changed."}, status=200)
+
+        return Response(serializer.errors, status=400)
+
 

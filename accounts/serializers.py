@@ -24,3 +24,23 @@ class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField(max_length=254)
     password = serializers.CharField(write_only=True,min_length=8)
 
+
+class ForgetPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField(max_length=254)
+
+class VerifyForgetPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField(max_length=254)
+    code = serializers.CharField(max_length=6, min_length=6)
+
+class ChangePasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField(max_length=254)
+    reset_token = serializers.CharField()
+    password = serializers.CharField(write_only=True,min_length=8)
+    confirm_password = serializers.CharField(write_only=True,min_length=8)
+
+    def validate(self, data):
+        if data['password'] != data['confirm_password']:
+            raise serializers.ValidationError("Passwords don't match")
+        return data
+
+
