@@ -1,3 +1,4 @@
+from rest_framework import generics
 from rest_framework.response import Response
 from django.core.cache import cache
 from django.core.mail import send_mail
@@ -9,6 +10,7 @@ import secrets
 import string
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.throttling import AnonRateThrottle
+from rest_framework.permissions import IsAdminUser
 
 # Create your views here.
 
@@ -72,10 +74,13 @@ class VerifyCodeView(APIView):
                 cache.set(attempt_key, attempts + 1, timeout=300)
                 return Response({"error": "The code is wrong."}, status=400)
 
-            User.objects.create(
+            user = User.objects.create(
                 username=email,
                 email=email,
                 password=data['password']
+            )
+            CustomerProfile.objects.create(
+                user=user
             )
 
             cache.delete(f"register_user_{email}")
@@ -221,4 +226,36 @@ class ChangePasswordView(APIView):
 
         return Response(serializer.errors, status=400)
 
+
+class VendorRequestView(APIView):
+
+    def post(self, request):
+        if hasattr(request.user, 'vendor_profile'):
+            return Response({"error": "Already requested."}, status=400)
+
+        serializer = VendorRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        VendorProfile.objects.create(
+            user=request.user,
+            shop_name=serializer.validated_data['shop_name'].title()
+        )
+
+        return Response({"message": "Request sent."}, status=201)
+
+class ActiveVendorView(generics.ListAPIView):
+
+    queryset = VendorProfile.objects.filter(is_approved=True)
+    serializer_class = ActiveVendorSerializer
+    permission_classes = [IsAdminUser]
+
+class UnactiveVendorView(generics.ListAPIView):
+
+    queryset = VendorProfile.objects.filter(is_approved=False)
+    serializer_class = ActiveVendorSerializer
+    permission_classes = [IsAdminUser]
+class AdminVendorApproveView(generics.UpdateAPIView):
+    serializer_class = VendorApproveSerializer
+    queryset = VendorProfile.objects.all()
+    permission_classes = [IsAdminUser]
 

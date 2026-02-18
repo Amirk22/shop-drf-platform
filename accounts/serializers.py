@@ -44,3 +44,16 @@ class ChangePasswordSerializer(serializers.Serializer):
         return data
 
 
+class VendorRequestSerializer(serializers.Serializer):
+    shop_name = serializers.CharField(max_length=255)
+
+class ActiveVendorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VendorProfile
+        fields = "__all__"
+
+class VendorApproveSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VendorProfile
+        fields = "__all__"
+        read_only_fields = ["id","shop_name","user"]

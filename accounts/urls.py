@@ -11,4 +11,8 @@ urlpatterns = [
     path('password/forgot/',ForgetPasswordView.as_view(),name='forget_password'),
     path('password/verify/',VerifyForgetPasswordView.as_view(),name='verify_forget_password'),
     path('password/reset/',ChangePasswordView.as_view(),name='password_change'),
+    path('vender/request/',VendorRequestView.as_view(),name='vender_request'),
+    path('vendor/active/',ActiveVendorView.as_view(),name='active_vendor'),
+    path('vendor/unactive/',UnactiveVendorView.as_view(),name='unactive_vendor'),
+    path('vendor/<int:pk>',AdminVendorApproveView.as_view(),name='admin_vendor_approve'),
 ]
