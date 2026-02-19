@@ -57,3 +57,20 @@ class VendorApproveSerializer(serializers.ModelSerializer):
         model = VendorProfile
         fields = "__all__"
         read_only_fields = ["id","shop_name","user"]
+
+class VendorProfileSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(source="user.email", read_only=True)
+    class Meta:
+        model = VendorProfile
+        fields = ["id", "shop_name", "is_approved", "email"]
+
+class CustomerProfileSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(source="user.email", read_only=True)
+    class Meta:
+        model = CustomerProfile
+        fields = ["id", "email"]
+
+class AdminProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "email"]

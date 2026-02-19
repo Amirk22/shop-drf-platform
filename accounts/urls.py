@@ -15,4 +15,5 @@ urlpatterns = [
     path('vendor/active/',ActiveVendorView.as_view(),name='active_vendor'),
     path('vendor/unactive/',UnactiveVendorView.as_view(),name='unactive_vendor'),
     path('vendor/<int:pk>',AdminVendorApproveView.as_view(),name='admin_vendor_approve'),
+    path('profile/',ProfileView.as_view(),name='profile'),
 ]

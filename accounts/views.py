@@ -264,3 +264,21 @@ class AdminVendorApproveView(generics.UpdateAPIView):
     queryset = VendorProfile.objects.all()
     permission_classes = [IsAdminUser]
 
+class ProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+
+        if user.is_superuser:
+            return Response(AdminProfileSerializer(user).data)
+
+        vendor = VendorProfile.objects.filter(user=user).first()
+        if vendor:
+            return Response(VendorProfileSerializer(vendor).data)
+
+        customer = CustomerProfile.objects.filter(user=user).first()
+        if customer:
+            return Response(CustomerProfileSerializer(customer).data)
+
+        return Response({"detail": "Profile not found"}, status=404)
