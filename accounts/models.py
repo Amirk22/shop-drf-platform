@@ -7,9 +7,6 @@ from django.contrib.auth.models import AbstractUser
 class User(AbstractUser):
     email = models.EmailField(unique=True)
 
-    is_vendor = models.BooleanField(default=False)
-    is_customer = models.BooleanField(default=True)
-
     USERNAME_FIELD = "username"
     REQUIRED_FIELDS = ["email"]
 
