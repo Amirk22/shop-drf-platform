@@ -1,5 +1,7 @@
 from rest_framework import generics
+from django_filters.rest_framework import DjangoFilterBackend
 from .serializers import *
+from .filters import ProductFilter
 from accounts.models import VendorProfile
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAdminUser
@@ -19,10 +21,13 @@ class GeneralPagination(PageNumberPagination):
 class ProductView(generics.ListAPIView):
     serializer_class = ProductSerializer
     pagination_class = ProductPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = ProductFilter
+
     def get_queryset(self):
         return Product.objects.filter(is_active=True).select_related(
-            'vendor', 'category', 'brand', 'color'
-        )
+            'vendor','category','brand','color'
+        ).prefetch_related('sizes')
 
 class CreateProductView(generics.CreateAPIView):
     permission_classes = [IsVendor]
