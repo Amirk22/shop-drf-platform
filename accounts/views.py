@@ -11,7 +11,7 @@ import string
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, BasePermission
-
+from rest_framework import permissions
 
 # Create your views here.
 
@@ -43,6 +43,19 @@ class IsVendorOrAdmin(BasePermission):
             user=request.user,
             is_approved=True
         ).exists()
+
+
+class ProductDetailPermission(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return request.user and request.user.is_authenticated
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return request.user.is_superuser or obj.vendor.user == request.user
 
 
 def generate_6digit_code():

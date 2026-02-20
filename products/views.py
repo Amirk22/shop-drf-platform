@@ -5,7 +5,7 @@ from .filters import ProductFilter
 from accounts.models import VendorProfile
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAdminUser
-from accounts.views import IsVendor , IsVendorOrAdmin
+from accounts.views import IsVendor , ProductDetailPermission
 from rest_framework import filters
 # Create your views here.
 
@@ -44,15 +44,8 @@ class CreateProductView(generics.CreateAPIView):
 
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ProductSerializer
-    permission_classes = [IsVendorOrAdmin]
-
-    def get_queryset(self):
-        if self.request.user.is_superuser:
-            return Product.objects.all()
-
-        return Product.objects.filter(
-            vendor__user=self.request.user
-        )
+    permission_classes = [ProductDetailPermission]
+    queryset = Product.objects.all()
 
 # Category
 
