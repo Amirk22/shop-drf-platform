@@ -10,9 +10,25 @@ import secrets
 import string
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.throttling import AnonRateThrottle
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.permissions import IsAdminUser, IsAuthenticated, BasePermission
+
 
 # Create your views here.
+
+
+class IsVendor(BasePermission):
+    def has_permission(self, request, view):
+        user = request.user
+
+        if not user.is_authenticated:
+            return False
+
+        vendor = VendorProfile.objects.filter(user=user).first()
+        if not vendor:
+            return False
+
+        return vendor.is_approved
+
 
 def generate_6digit_code():
     return ''.join(secrets.choice(string.digits) for _ in range(6))
