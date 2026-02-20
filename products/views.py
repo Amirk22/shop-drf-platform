@@ -95,3 +95,20 @@ class ColorDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAdminUser]
     serializer_class = ColorSerializer
     queryset = Color.objects.all()
+
+# Size
+
+class SizeView(generics.ListAPIView):
+    serializer_class = SizeSerializer
+    pagination_class = GeneralPagination
+    queryset = Size.objects.all()
+
+class CreateSizeView(generics.CreateAPIView):
+    permission_classes = [IsAdminUser]
+    serializer_class = SizeSerializer
+    queryset = Size.objects.all()
+
+class SizeDetailView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAdminUser]
+    serializer_class = SizeSerializer
+    queryset = Size.objects.all()

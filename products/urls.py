@@ -14,4 +14,7 @@ urlpatterns = [
     path('color/',ColorView.as_view(),name='colors'),
     path('color/create/',CreateColorView.as_view(),name='color_create'),
     path('color/<int:pk>/',ColorDetailView.as_view(),name='color_detail'),
+    path('size/',SizeView.as_view(),name='size'),
+    path('size/create/',CreateSizeView.as_view(),name='size_create'),
+    path('size/<int:pk>/',SizeDetailView.as_view(),name='size_detail'),
 ]

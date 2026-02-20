@@ -29,3 +29,10 @@ class ColorSerializer(serializers.ModelSerializer):
         model = Color
         fields = '__all__'
         read_only_fields = ('id',)
+
+
+class SizeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Size
+        fields = '__all__'
+        read_only_fields = ('id',)
