@@ -30,6 +30,21 @@ class IsVendor(BasePermission):
         return vendor.is_approved
 
 
+class IsVendorOrAdmin(BasePermission):
+
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+
+        if request.user.is_superuser:
+            return True
+
+        return VendorProfile.objects.filter(
+            user=request.user,
+            is_approved=True
+        ).exists()
+
+
 def generate_6digit_code():
     return ''.join(secrets.choice(string.digits) for _ in range(6))
 
