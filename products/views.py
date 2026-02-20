@@ -6,6 +6,7 @@ from accounts.models import VendorProfile
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAdminUser
 from accounts.views import IsVendor , IsVendorOrAdmin
+from rest_framework import filters
 # Create your views here.
 
 
@@ -21,8 +22,9 @@ class GeneralPagination(PageNumberPagination):
 class ProductView(generics.ListAPIView):
     serializer_class = ProductSerializer
     pagination_class = ProductPagination
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_class = ProductFilter
+    search_fields = ['title', 'description']
 
     def get_queryset(self):
         return Product.objects.filter(is_active=True).select_related(
