@@ -47,6 +47,29 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [ProductDetailPermission]
     queryset = Product.objects.all()
 
+class ProductVendorListView(generics.ListAPIView):
+    serializer_class = ProductSerializer
+    pagination_class = ProductPagination
+    permission_classes = [IsVendor]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_class = ProductFilter
+    search_fields = ['title', 'description']
+
+    def get_queryset(self):
+        vendor = VendorProfile.objects.get(user=self.request.user,)
+        return Product.objects.filter(vendor=vendor,is_active=True).select_related(
+            'vendor', 'category', 'brand', 'color'
+        ).prefetch_related('sizes')
+
+class ProductVendorDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = ProductSerializer
+    permission_classes = [IsVendor]
+
+    def get_queryset(self):
+        vendor = VendorProfile.objects.get(user=self.request.user,)
+        return Product.objects.filter(vendor=vendor,is_active=True)
+
+
 # Category
 
 class CategoryView(generics.ListAPIView):
